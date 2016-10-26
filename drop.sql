@@ -1,0 +1,3 @@
+DROP TABLE Person;
+DROP TABLE Kuenstler;
+DROP TABLE Kunde;
