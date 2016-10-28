@@ -1,4 +1,5 @@
 CREATE SEQUENCE seq_person;
+CREATE SEQUENCE seq_haus;
 
 CREATE TABLE Person(
 	pid INTEGER PRIMARY KEY DEFAULT nextval('seq_person'),
@@ -8,41 +9,61 @@ CREATE TABLE Person(
 	adresse VARCHAR(200)
 );
 CREATE TABLE Kuenstler(
-	kue_id INTEGER REFERENCES Person(pid),
+	pid INTEGER,
 	instagram VARCHAR(50)
 );
 CREATE TABLE Kunde(
-	pid INTEGER REFERENCES Person(pid),
-	knr INTEGER NOT NULL,
+	pid INTEGER,
+	knr INTEGER UNIQUE NOT NULL,
 );
 CREATE TABLE Mitarbeiter(
-	pid INTEGER REFERENCES Person(pid),
+	pid INTEGER,
 	lohn NUMERIC(5,2) NOT NULL CHECK (lohn >= 1)
 );
--- Bis hier
-
-
-CREATE TABLE Kundendaten (
-	knr INTEGER REFERENCES Kunde(knr),
-	erstelldatum DATE,
-	anschrift VARCHAR(40) NOT NULL,
-	sonderrabatt INTEGER NOT NULL,
-	
-	PRIMARY KEY(knr, erstelldatum)
+CREATE TABLE Haus(
+	hid INTEGER PRIMARY KEY DEFAULT nextval('seq_haus'),
+	hname varchar(50),
+	adresse varchar(100)
+);
+CREATE TABLE Saal(
+	sid INTEGER,
+	sname VARCHAR(50)
+);
+CREATE TABLE Platz(
+	plid INTEGER,
+	Sitz INTEGER,
+	Reihe INTEGER	
+);
+CREATE TABLE Werk(
+	wid INTEGER,
+	wname VARCHAR(50)
+);
+CREATE TABLE Kategorie(
+	kid INTEGER,
+	kname VARCHAR(50)
+	superkat INTEGER
+);
+CREATE TABLE Rolle(
+	rid INTEGER,
+	rname VARCHAR(50)
+);
+CREATE TABLE Auffuehrung(
+	aid INTEGER,
+	datum DATE,
+	verkauf BOOLEAN DEFAULT 'false'
+);
+CREATE TABLE Ticket(
+	tid INTEGER,
+	preis NUMERIC(5,2)
 );
 
-CREATE TABLE Auftrag (
-	anr INTEGER PRIMARY KEY DEFAULT nextval('seq_auftrag'),
-	knr INTEGER NOT NULL REFERENCES Kunde(knr),
-	adatum DATE NOT NULL
-);
-
+/*
 CREATE TABLE APosition (
     anr INTEGER	REFERENCES Auftrag(anr),
 	apnr INTEGER,
 	liefertermin DATE NOT NULL,
 	rabatt INTEGER NOT NULL,
-	
+
 	PRIMARY KEY (anr,apnr)
 );
 
@@ -70,7 +91,7 @@ CREATE TABLE SonstigePosition (
 	apnr INTEGER,
 	wert NUMERIC(7,2) NOT NULL CHECK (wert >= 1), 
 	beschreibung VARCHAR(100) NOT NULL,
-	
+
 	PRIMARY KEY (anr,apnr),
 	FOREIGN KEY (anr,apnr) REFERENCES APosition(anr,apnr)
 );
@@ -88,13 +109,14 @@ CREATE TABLE Kategorie (
 	topleistung INTEGER REFERENCES Leistung(lnr) DEFERRABLE INITIALLY DEFERRED
 );
 
-ALTER TABLE Leistung ADD CONSTRAINT fk_kategorie FOREIGN KEY (knr) REFERENCES Kategorie(knr) DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE Leistung ADD CONSTRAINT fk_kategorie FOREIGN KEY (knr) REFERENCES Kategorie(knr) 
+DEFERRABLE INITIALLY DEFERRED;
 
 CREATE TABLE benoetigt (
    lnr INTEGER REFERENCES Leistung(lnr),
    benoetigt INTEGER REFERENCES Leistung(lnr),
    menge integer check (menge > 0),
-   
+
    PRIMARY KEY (lnr, benoetigt)
 );
 
@@ -107,4 +129,4 @@ CREATE TABLE Leistungsposition(
 
         PRIMARY KEY (anr,apnr),
 	FOREIGN KEY (anr,apnr) REFERENCES APosition(anr,apnr)
-);
+);*/
