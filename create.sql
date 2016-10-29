@@ -1,132 +1,131 @@
 CREATE SEQUENCE seq_person;
-CREATE SEQUENCE seq_haus;
+CREATE SEQUENCE seq_ticket;
+
+CREATE SEQUENCE seq_kunde 
+START WITH 1000
+INCREMENT BY 1;
 
 CREATE TABLE Person(
-	pid INTEGER PRIMARY KEY DEFAULT nextval('seq_person'),
+	pid INTEGER DEFAULT NEXTVAL ('seq_person'),
 	vname VARCHAR(50) NOT NULL,
 	nname VARCHAR(50) NOT NULL,
 	gebdatum DATE,
-	adresse VARCHAR(200)
+	adresse VARCHAR(200),
+	PRIMARY KEY (pid)
 );
 CREATE TABLE Kuenstler(
 	pid INTEGER,
-	instagram VARCHAR(50)
+	instagram VARCHAR(50),
+	PRIMARY KEY (pid),
+	FOREIGN KEY (pid) REFERENCES Person(pid)
 );
 CREATE TABLE Kunde(
 	pid INTEGER,
-	knr INTEGER UNIQUE NOT NULL,
+	knr INTEGER DEFAULT NEXTVAL ('seq_kunde'),
+	PRIMARY KEY (knr),
+	FOREIGN KEY (pid) REFERENCES Person(pid)
+	-- UNIQUE nicht notwendig da knr schon PK ist.
 );
 CREATE TABLE Mitarbeiter(
 	pid INTEGER,
-	lohn NUMERIC(5,2) NOT NULL CHECK (lohn >= 1)
+	hid INTEGER,
+	lohn NUMERIC(8,2) NOT NULL Check (lohn >= 1.00),
+	PRIMARY KEY (pid),
+	FOREIGN KEY (pid) REFERENCES Person(pid)
 );
 CREATE TABLE Haus(
-	hid INTEGER PRIMARY KEY DEFAULT nextval('seq_haus'),
+	hid INTEGER,
+	pid INTEGER,
 	hname varchar(50),
-	adresse varchar(100)
+	adresse varchar(100),
+	PRIMARY KEY (hid),
+	FOREIGN KEY (pid) REFERENCES Mitarbeiter(pid) DEFERRABLE INITIALLY DEFERRED
 );
+ALTER TABLE Mitarbeiter ADD CONSTRAINT fk_haus FOREIGN KEY (hid) REFERENCES Haus(hid) DEFERRABLE INITIALLY DEFERRED;
+/* Alternativ zu ALTER TABLE
+CREATE TABLE arbeitet_in(
+	hid INTEGER,
+	mid INTEGER,
+	leitet BOOLEAN,
+	PRIMARY KEY (mid, hid),
+	FOREIGN KEY (mid) REFERENCES Mitarbeiter(pid),
+	FOREIGN KEY (hid) REFERENCES Haus(hid)
+);*/
 CREATE TABLE Saal(
+	hid INTEGER,
 	sid INTEGER,
-	sname VARCHAR(50)
+	sname VARCHAR(50),
+	PRIMARY KEY (sid),
+	FOREIGN KEY (hid) REFERENCES Haus(hid)
 );
 CREATE TABLE Platz(
+	sid INTEGER,
 	plid INTEGER,
 	Sitz INTEGER,
-	Reihe INTEGER	
+	Reihe INTEGER,
+	PRIMARY KEY (plid),
+	FOREIGN KEY (sid) REFERENCES Saal(sid),
+	UNIQUE (Sitz, Reihe)
 );
 CREATE TABLE Werk(
 	wid INTEGER,
-	wname VARCHAR(50)
+	wname VARCHAR(50),
+	PRIMARY KEY (wid)
 );
 CREATE TABLE Kategorie(
 	kid INTEGER,
-	kname VARCHAR(50)
-	superkat INTEGER
+	kname VARCHAR(50),
+	PRIMARY KEY (kid)
+);
+CREATE TABLE superkat(
+	kid_inf INTEGER,
+	kid_sup INTEGER,
+	FOREIGN KEY (kid_inf) REFERENCES Kategorie(kid), 
+	FOREIGN KEY (kid_sup) REFERENCES Kategorie(kid),
+	PRIMARY KEY (kid_inf, kid_sup)
+);
+CREATE TABLE zugeordnet(
+	wid INTEGER,
+	kid INTEGER,
+	PRIMARY KEY (wid, kid),
+	FOREIGN KEY (wid) REFERENCES Werk(wid),
+	FOREIGN KEY (kid) REFERENCES Kategorie(kid)
 );
 CREATE TABLE Rolle(
-	rid INTEGER,
-	rname VARCHAR(50)
+	wid INTEGER,
+	rid INTEGER DEFAULT nextval('seq_rolle'),
+	rname VARCHAR(50),
+	PRIMARY KEY (rid),
+	FOREIGN KEY (wid) REFERENCES Werk(wid)
 );
 CREATE TABLE Auffuehrung(
-	aid INTEGER,
+	aid INTEGER DEFAULT nextval('seq_auffuehrung'),
+	sid INTEGER,
 	datum DATE,
-	verkauf BOOLEAN DEFAULT 'false'
+	verkauf BOOLEAN DEFAULT 'false',
+	PRIMARY KEY (aid),
+	FOREIGN KEY (sid) REFERENCES Saal(sid)
+);
+CREATE Table spielt(
+	aid INTEGER,
+	pid INTEGER,
+	rid INTEGER,
+	wid INTEGER,
+	Gage NUMERIC(8,2) NOT NULL CHECK (Gage >= 1.00),
+	PRIMARY KEY (pid, aid),
+	FOREIGN KEY (aid) REFERENCES Auffuehrung(aid),
+	FOREIGN KEY (pid) REFERENCES Kuenstler(pid),
+	FOREIGN KEY (rid) REFERENCES Rolle(rid),
+	FOREIGN KEY (wid) REFERENCES Werk(wid)
 );
 CREATE TABLE Ticket(
-	tid INTEGER,
-	preis NUMERIC(5,2)
+	tid INTEGER DEFAULT nextval('seq_ticket'),
+	knr INTEGER,
+	aid INTEGER,
+	plid INTEGER,
+	preis NUMERIC(8,2) NOT NULL CHECK (preis >= 1.00),
+	PRIMARY KEY (tid, plid, aid),
+	FOREIGN KEY (knr) REFERENCES Kunde(knr),
+	FOREIGN KEY (aid) REFERENCES Auffuehrung(aid),
+	FOREIGN KEY (plid) REFERENCES Platz(plid)
 );
-
-/*
-CREATE TABLE APosition (
-    anr INTEGER	REFERENCES Auftrag(anr),
-	apnr INTEGER,
-	liefertermin DATE NOT NULL,
-	rabatt INTEGER NOT NULL,
-
-	PRIMARY KEY (anr,apnr)
-);
-
-CREATE TABLE Rechnung (
-	rnr INTEGER PRIMARY KEY DEFAULT nextval('seq_rechnung'),
-	rdatum DATE NOT NULL
-);
-
-CREATE TABLE RPosition (
-	rnr INTEGER REFERENCES Rechnung(rnr),
-	rpnr INTEGER,
-	anr INTEGER,
-	apnr INTEGER,
-	wert NUMERIC(7,2) NOT NULL CHECK (wert >= 1),
-	text VARCHAR(100) NOT NULL,
-
-	PRIMARY KEY(rnr,rpnr),
-	FOREIGN KEY (anr,apnr) REFERENCES APosition(anr,apnr),
-	UNIQUE (anr, apnr)
-);
-
-
-CREATE TABLE SonstigePosition (
-        anr INTEGER,
-	apnr INTEGER,
-	wert NUMERIC(7,2) NOT NULL CHECK (wert >= 1), 
-	beschreibung VARCHAR(100) NOT NULL,
-
-	PRIMARY KEY (anr,apnr),
-	FOREIGN KEY (anr,apnr) REFERENCES APosition(anr,apnr)
-);
-
-CREATE TABLE Leistung (
-	lnr INTEGER PRIMARY KEY DEFAULT nextval('seq_leistung'),
-	bezeichnung VARCHAR(40) NOT NULL,
-	preis NUMERIC(5,2) NOT NULL CHECK (preis >= 1),
-	knr INTEGER NOT NULL
-);
-
-CREATE TABLE Kategorie (
-	knr INTEGER PRIMARY KEY DEFAULT nextval('seq_kategorie'),
-	name VARCHAR(40) NOT NULL,
-	topleistung INTEGER REFERENCES Leistung(lnr) DEFERRABLE INITIALLY DEFERRED
-);
-
-ALTER TABLE Leistung ADD CONSTRAINT fk_kategorie FOREIGN KEY (knr) REFERENCES Kategorie(knr) 
-DEFERRABLE INITIALLY DEFERRED;
-
-CREATE TABLE benoetigt (
-   lnr INTEGER REFERENCES Leistung(lnr),
-   benoetigt INTEGER REFERENCES Leistung(lnr),
-   menge integer check (menge > 0),
-
-   PRIMARY KEY (lnr, benoetigt)
-);
-
-
-CREATE TABLE Leistungsposition(
-	anr INTEGER,
-	apnr INTEGER,
-	leistung INTEGER REFERENCES Leistung(lnr),
-	menge INTEGER NOT NULL,
-
-        PRIMARY KEY (anr,apnr),
-	FOREIGN KEY (anr,apnr) REFERENCES APosition(anr,apnr)
-);*/
