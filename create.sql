@@ -52,15 +52,15 @@ CREATE TABLE arbeitet_in(
 	FOREIGN KEY (hid) REFERENCES Haus(hid)
 );*/
 CREATE TABLE Saal(
-	hid INTEGER,
 	sid INTEGER,
+	hid INTEGER,
 	sname VARCHAR(50),
 	PRIMARY KEY (sid),
 	FOREIGN KEY (hid) REFERENCES Haus(hid)
 );
 CREATE TABLE Platz(
-	sid INTEGER,
 	plid INTEGER,
+	sid INTEGER,
 	Sitz INTEGER,
 	Reihe INTEGER,
 	PRIMARY KEY (plid),
@@ -92,14 +92,14 @@ CREATE TABLE zugeordnet(
 	FOREIGN KEY (kid) REFERENCES Kategorie(kid)
 );
 CREATE TABLE Rolle(
-	wid INTEGER,
-	rid INTEGER DEFAULT nextval('seq_rolle'),
+	rid INTEGER,
 	rname VARCHAR(50),
-	PRIMARY KEY (rid),
+	wid INTEGER,
+	PRIMARY KEY (rid, wid),
 	FOREIGN KEY (wid) REFERENCES Werk(wid)
 );
 CREATE TABLE Auffuehrung(
-	aid INTEGER DEFAULT nextval('seq_auffuehrung'),
+	aid INTEGER,
 	sid INTEGER,
 	datum DATE,
 	verkauf BOOLEAN DEFAULT 'false',
@@ -112,11 +112,10 @@ CREATE Table spielt(
 	rid INTEGER,
 	wid INTEGER,
 	Gage NUMERIC(8,2) NOT NULL CHECK (Gage >= 1.00),
-	PRIMARY KEY (pid, aid),
+	PRIMARY KEY (aid, pid),
 	FOREIGN KEY (aid) REFERENCES Auffuehrung(aid),
 	FOREIGN KEY (pid) REFERENCES Kuenstler(pid),
-	FOREIGN KEY (rid) REFERENCES Rolle(rid),
-	FOREIGN KEY (wid) REFERENCES Werk(wid)
+	FOREIGN KEY (rid, wid) REFERENCES Rolle(rid, wid)
 );
 CREATE TABLE Ticket(
 	tid INTEGER DEFAULT nextval('seq_ticket'),
