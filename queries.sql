@@ -1,9 +1,17 @@
 --Query 1--
-SELECT DISTINCT hname 
-FROM APosition 
-WHERE (anr,apnr) NOT IN (SELECT anr, apnr FROM RPosition);
+select h.hname as Haus, (select count(*) 
+from platz p join saal s
+on p.sid = s.sid
+where s.hid = h.hid) as Plaetze
+from haus h;
 
 --Query 2--
+create or replace view WerkKat as
+begin
+end;
+
+
+
 CREATE OR REPLACE VIEW LeistungsPreis AS 
 	WITH RECURSIVE lben(lnr, benoetigt, menge) AS (
 			SELECT b.lnr, b.benoetigt, b.menge
