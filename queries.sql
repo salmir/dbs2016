@@ -7,11 +7,40 @@ from haus h;
 
 --Query 2--
 create or replace view WerkKat as
-begin
-end;
+	with recursive supkat(kid_sup, kid_inf) as (
+		select a.kid_sup, a.kid_inf 
+		from superkat a
+	union all
+		select b.kid_sup, b.kid_inf
+		from supkat b join superkat a on a.kid_inf = b.kid_sup
+		)
+	select z.wid as werk, coalesce(b.kid_inf, b.kid_sup, '0') as kategorie
+	from zugeordnet z left join (select supkat.kid_sup, supkat.kid_inf
+								 from supkat) b on z.kid = b.kid_inf
+	order by z.wid;		
+	-- Endlos-Rekursion -.-
+select * from WerkKat;
+
+--Query 3--
+select a.datum as datum, h.hname as hausname
+from auffuehrung a 
+inner join ((((select s.sid as sid 
+		    from saal s 
+		    inner join haus h on s.hid = h.hid) h on a.sid = h.sid
+				inner join (select sp.wid, sp.aid 
+				from spielt sp) on sp.aid = a.aid)
+					inner join (select t.aid 
+					from ticket t 
+					where t.knr is null) on a.aid = t.aid)
+						inner join
+						(select z.wid 
+						from zugeordnet z where z.kid = 1) on z.wid = sp.wid);
 
 
 
+
+
+--WS 15--
 CREATE OR REPLACE VIEW LeistungsPreis AS 
 	WITH RECURSIVE lben(lnr, benoetigt, menge) AS (
 			SELECT b.lnr, b.benoetigt, b.menge
