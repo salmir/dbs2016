@@ -6,7 +6,7 @@ where s.hid = h.hid) as Plaetze
 from haus h;
 
 --Query 2--
-create or replace view WerkKat as
+/*create or replace view WerkKat as
 	with recursive supkat(kid_sup, kid_inf) as (
 		select a.kid_sup, a.kid_inf 
 		from superkat a
@@ -19,49 +19,33 @@ create or replace view WerkKat as
 								 from supkat) b on z.kid = b.kid_inf
 	order by z.wid;		
 	-- Endlos-Rekursion -.-
-select * from WerkKat;
+select * from WerkKat;*/
 
 --Query 3--
-select a.datum as datum, h.hname as hausname
-from auffuehrung a 
-inner join ((((select s.sid as sid 
-		    from saal s 
-		    inner join haus h on s.hid = h.hid) h on a.sid = h.sid
-				inner join (select sp.wid, sp.aid 
-				from spielt sp) on sp.aid = a.aid)
-					inner join (select t.aid 
-					from ticket t 
-					where t.knr is null) on a.aid = t.aid)
-						inner join
-						(select z.wid 
-						from zugeordnet z where z.kid = 1) on z.wid = sp.wid);
+select datum, name from
+	(select name, datum, aid from
+	(select h.hname as name, s.sid as sid
+	 from haus h
+	 inner join saal s on h.hid = s.hid) x
+inner join
+	(select t.aid as aid, a.sid as sid, a.datum as datum
+	 from ticket t 
+	 inner join auffuehrung a on t.aid = a.aid 
+	 where t.knr is null) y
+on x.sid = y.sid) m
+inner join
+	(select s.aid as aid, z.kid as kid
+	 from zugeordnet z
+	 inner join spielt s on s.wid = z.wid
+	 group by kid, aid) n
+on m.aid = n.aid;
 
-
-
-
-
---WS 15--
-CREATE OR REPLACE VIEW LeistungsPreis AS 
-	WITH RECURSIVE lben(lnr, benoetigt, menge) AS (
-			SELECT b.lnr, b.benoetigt, b.menge
-			FROM benoetigt b
-		UNION ALL
-			SELECT l.lnr, b.benoetigt, b.menge
-			FROM lben l JOIN benoetigt b ON l.benoetigt = b.lnr
-			) 
-	SELECT l.lnr, COALESCE(b.preis+l.preis,l.preis) AS preis 
-	FROM leistung l LEFT JOIN (SELECT lben.lnr, SUM(lben.menge * l.preis) AS preis
-	                           FROM lben JOIN leistung l ON lben.benoetigt = l.lnr 
-	                           GROUP BY lben.lnr) b ON b.lnr = l.lnr
-	ORDER BY l.lnr;
-
-SELECT * FROM LeistungsPreis;
-
-
---Query 3--
-CREATE OR REPLACE VIEW AktKundendaten AS 
-    SELECT *
-    FROM  Kundendaten d
-    WHERE d.erstelldatum IN (SELECT max(erstelldatum) FROM Kundendaten WHERE knr = d.knr);
-
-SELECT * FROM AktKundendaten;
+--Query 4--
+select vname, nname from
+	(select p.pid, p.vname, p.nname, count(p.pid) anz
+	 from person p
+	 left join spielt s on s.pid = p.pid
+	 group by p.pid, s.rid, p.vname, p.nname
+	 order by anz desc) a
+inner join
+kuenstler k on a.pid = k.pid;

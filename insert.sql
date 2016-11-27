@@ -88,9 +88,14 @@ INSERT INTO Auffuehrung VALUES
 INSERT INTO Spielt VALUES
 (1,1,1,1,4000.00),
 (1,2,2,1,5000.00),
-(1,3,3,1,6000.00);
+(1,3,3,1,6000.00),
+(2,1,1,1,4000.00);
 
 INSERT INTO Ticket VALUES
 (1,1001,1,1,199.99),
-(1,1002,1,2,149.99),
-(1,1003,1,5,99.99);
+(2,1002,1,2,149.99),
+(3,1003,1,5,99.99);
+
+INSERT INTO Ticket(tid,aid,plid,preis) VALUES
+(4,1,4,99.99),
+(5,1,3,129.99);
